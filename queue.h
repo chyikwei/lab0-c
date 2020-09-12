@@ -8,6 +8,9 @@
  * It uses a singly-linked list to represent the set of queue elements
  */
 
+#define MIN(a, b) (((a) < (b)) ? (a) : (b))
+#define MAX(a, b) (((a) > (b)) ? (a) : (b))
+
 #include <stdbool.h>
 #include <stddef.h>
 
@@ -25,10 +28,8 @@ typedef struct ELE {
 /* Queue structure */
 typedef struct {
     list_ele_t *head; /* Linked list of elements */
-    /* TODO: You will need to add more fields to this structure
-     *        to efficiently implement q_size and q_insert_tail.
-     */
-    /* TODO: Remove the above comment when you are about to implement. */
+    list_ele_t *tail;
+    int size;
 } queue_t;
 
 /* Operations on queue */
