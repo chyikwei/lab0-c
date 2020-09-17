@@ -5,6 +5,11 @@
 #include "harness.h"
 #include "queue.h"
 
+/* function declaration */
+void q_bubble_sort(queue_t *q);
+list_ele_t *q_merge_sort(list_ele_t *);
+list_ele_t *q_merge(list_ele_t *, list_ele_t *);
+
 /*
  * Create empty queue.
  * Return NULL if could not allocate space.
@@ -24,6 +29,10 @@ queue_t *q_new()
 /* Free all storage used by queue */
 void q_free(queue_t *q)
 {
+    if (q == NULL) {
+        return;
+    }
+
     /* Free queue structure */
     list_ele_t *elem = q->head;
     while (elem != NULL) {
@@ -139,6 +148,8 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
         int s_size = MIN(strlen(elem->value), bufsize - 1);
         strncpy(sp, elem->value, s_size);
         sp[s_size] = '\0';
+    } else {
+        return false;
     }
     q->head = elem->next;
     q->size -= 1;
@@ -146,10 +157,9 @@ bool q_remove_head(queue_t *q, char *sp, size_t bufsize)
     if (q->size == 0) {
         q->tail = NULL;
     }
+
     /* free element */
-    if (elem->value != NULL) {
-        free(elem->value);
-    }
+    free(elem->value);
     free(elem);
     return true;
 }
@@ -175,8 +185,26 @@ int q_size(queue_t *q)
  */
 void q_reverse(queue_t *q)
 {
-    /* TODO: You need to write the code for this function */
-    /* TODO: Remove the above comment when you are about to implement. */
+    if (q == NULL) {
+        return;
+    }
+    if (q->size <= 1) {
+        return;
+    }
+    q->tail = q->head;
+    // more than 1 elem
+    list_ele_t *elem = q->head;
+    list_ele_t *e_next = elem->next;
+    // elem is last one now
+    elem->next = NULL;
+    while (e_next != NULL) {
+        list_ele_t *tmp = e_next->next;
+        e_next->next = elem;
+        elem = e_next;
+        e_next = tmp;
+    }
+    q->head = elem;
+    return;
 }
 
 /*
@@ -186,6 +214,118 @@ void q_reverse(queue_t *q)
  */
 void q_sort(queue_t *q)
 {
-    /* TODO: You need to write the code for this function */
-    /* TODO: Remove the above comment when you are about to implement. */
+    if (q == NULL || q->size <= 1) {
+        return;
+    }
+    // q_bubble_sort(q);
+    list_ele_t *new_head = q_merge_sort(q->head);
+    q->head = new_head;
+}
+
+/*
+void q_bubble_sort(queue_t *q)
+{
+    list_ele_t *head = q->head;
+    list_ele_t *ptr;
+    list_ele_t *prev_ptr;
+    list_ele_t *tail = NULL;
+    list_ele_t *new_tail = NULL;
+
+    while (head->next != tail) {
+        ptr = head;
+        prev_ptr = head;
+        while (ptr != NULL && ptr->next != tail) {
+            char *v1 = ptr->value;
+            char *v2 = ptr->next->value;
+            if (strcmp(v1, v2) <= 0) {
+                // order is correct, move on
+                prev_ptr = ptr;
+                ptr = ptr->next;
+            } else {
+                list_ele_t *tmp = ptr->next;
+                // updte prev elem -> next
+                if (ptr == prev_ptr) {
+                    // head
+                    head = tmp;
+                } else {
+                    prev_ptr->next = tmp;
+                }
+                // swap
+                ptr->next = tmp->next;
+                tmp->next = ptr;
+                prev_ptr = tmp;
+            }
+        }
+        if (new_tail == NULL) {
+            new_tail = ptr;
+        }
+        tail = ptr;
+    }
+    q->head = head;
+    q->tail = new_tail;
+}
+*/
+
+list_ele_t *q_merge_sort(list_ele_t *lt)
+{
+    // check size
+    if (lt == NULL || lt->next == NULL) {
+        return lt;
+    }
+
+    list_ele_t *fast = lt->next;
+    list_ele_t *slow = lt;
+
+    // split
+    while (fast != NULL && fast->next != NULL) {
+        fast = fast->next->next;
+        slow = slow->next;
+    }
+    fast = slow->next;
+    slow->next = NULL;
+
+    // sort each part
+    list_ele_t *fast_sorted = q_merge_sort(fast);
+    list_ele_t *slow_sorted = q_merge_sort(lt);
+    return q_merge(fast_sorted, slow_sorted);
+}
+
+list_ele_t *q_merge(list_ele_t *lt1, list_ele_t *lt2)
+{
+    if (lt1 == NULL) {
+        return lt2;
+    }
+    if (lt2 == NULL) {
+        return lt1;
+    }
+
+    // process head
+    list_ele_t *new_head;
+    if (strcmp(lt1->value, lt2->value) <= 0) {
+        new_head = lt1;
+        lt1 = lt1->next;
+    } else {
+        new_head = lt2;
+        lt2 = lt2->next;
+    }
+
+    list_ele_t *ptr = new_head;
+    while (lt1 != NULL && lt2 != NULL) {
+        if (strcmp(lt1->value, lt2->value) <= 0) {
+            ptr->next = lt1;
+            lt1 = lt1->next;
+        } else {
+            ptr->next = lt2;
+            lt2 = lt2->next;
+        }
+        ptr = ptr->next;
+    }
+    // process rest
+    if (lt1 != NULL) {
+        ptr->next = lt1;
+    }
+    if (lt2 != NULL) {
+        ptr->next = lt2;
+    }
+    return new_head;
 }
